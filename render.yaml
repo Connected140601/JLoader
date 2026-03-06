@@ -1,0 +1,26 @@
+services:
+  # Web Service
+  - type: web
+    name: video-downloader
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # Background Worker (optional, for cleanup tasks)
+  - type: worker
+    name: cleanup-worker
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -c "import time; while True: time.sleep(3600)"
+    envVars:
+      - key: WORKER_TYPE
+        value: cleanup
