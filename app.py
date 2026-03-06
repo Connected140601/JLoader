@@ -496,6 +496,10 @@ facebook_downloader = FacebookDownloader()
 def index():
     return send_file('index.html')
 
+@app.route('/styles.css')
+def styles():
+    return send_file('styles.css')
+
 @app.route('/script.js')
 def script():
     return send_file('script.js')

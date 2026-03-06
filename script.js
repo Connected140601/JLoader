@@ -51,20 +51,33 @@ async function fetchInfo(tabId) {
         const response = await fetch(`/api/${platform}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url: url })
+            body: JSON.stringify({ url: url }),
+            timeout: 30000 // 30 second timeout
         });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server response error:', response.status, errorText);
+            throw new Error(`Server error: ${response.status}`);
+        }
         
         const data = await response.json();
         
-        if (response.ok) {
+        if (data.error) {
+            showNotification(data.error, 'error');
+        } else {
             currentTabData[tabId] = data;
             displayInfo(tabId, data, platform, type);
-        } else {
-            showNotification(data.error || 'Failed to fetch video info', 'error');
         }
     } catch (error) {
         console.error('Fetch error:', error);
-        showNotification('Connection error. Is the server running?', 'error');
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            showNotification('Network error. Please check your connection and try again.', 'error');
+        } else if (error.message.includes('timeout')) {
+            showNotification('Request timed out. Please try again.', 'error');
+        } else {
+            showNotification(`Error: ${error.message}`, 'error');
+        }
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
